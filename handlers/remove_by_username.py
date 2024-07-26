@@ -8,8 +8,6 @@ router = Router()
 
 CHANNEL_ID = os.getenv('CHANNEL_ID')
 
-
-
 async def kick_user(message: types.Message, bot: Bot, channel_id: str):
     args = message.get_args()
     if not args:
@@ -26,7 +24,7 @@ async def kick_user(message: types.Message, bot: Bot, channel_id: str):
         user_id = member.user.id
 
         # Удаляем пользователя из канала
-        await bot.kick_chat_member(channel_id, user_id)
+        await bot.ban_chat_member(channel_id, user_id)
         await message.reply(f"Пользователь {username} удален из канала.")
     except Exception as e:
         await message.reply(f"Не удалось удалить пользователя {username}. Ошибка: {e}")
