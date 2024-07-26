@@ -33,7 +33,11 @@ async def kick_user(callback: CallbackQuery, bot: Bot):
     # Регистрация обработчика для следующего текстового сообщения
     @router.message()
     async def kick_user(message: Message):
-        username = message.text
+        username = message.text.strip() if message.text else None
+        if not username:
+            await message.reply("Ник пользователя не может быть пустым. Попробуйте снова.")
+            return
+
         if not username.startswith('@'):
             username = '@' + username
 
