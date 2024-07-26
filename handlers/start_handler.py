@@ -48,6 +48,7 @@ async def kick_user(callback: CallbackQuery, state: FSMContext):
 async def kick_user(message: Message, bot: Bot, state: FSMContext):
     await state.update_data(name=message.text)
     await state.set_state(Fsm.kick)
+    print(1)
     username = message.text.strip() if message.text else None
     if not username:
         await message.reply("Ник пользователя не может быть пустым. Попробуйте снова.")
