@@ -9,18 +9,15 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.filters import StateFilter
 
 
+
 router = Router()
 config: TgBot = load_config()
 
 CHANNEL_ID = config.channel_id_one
 
-
 class Fsm(StatesGroup):
     input = State()
     kick = State()
-
-
-
 
 @router.message(CommandStart())
 async def send_welcome(message: Message):
@@ -33,23 +30,20 @@ async def send_welcome(message: Message):
         reply_markup=create_inline_kb(2, 'remove_by_username')
     )
 
-
-
-
-
 @router.callback_query(F.data == 'remove_by_username')
 async def kick_user(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer("Пожалуйста, укажите ник пользователя для удаления (например, @username):")
     await callback.answer()
     await state.set_state(Fsm.input)
 
-
 @router.message(StateFilter(Fsm.input), F.text)
 async def kick_user(message: Message, bot: Bot, state: FSMContext):
     await state.update_data(name=message.text)
     await state.set_state(Fsm.kick)
     print(1)
-    username = message.text.strip() if message.text else None
+    username_dict = await state.get_data()
+    username = username_dict.get('name')
+    print(username)
     if not username:
         await message.reply("Ник пользователя не может быть пустым. Попробуйте снова.")
         return
