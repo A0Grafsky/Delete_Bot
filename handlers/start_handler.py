@@ -39,13 +39,15 @@ async def send_welcome(message: Message):
 
 @router.callback_query(F.data == 'remove_by_username')
 async def kick_user(callback: CallbackQuery, state: FSMContext):
-    await state.set_state(Fsm.input)
     await callback.message.answer("Пожалуйста, укажите ник пользователя для удаления (например, @username):")
     await callback.answer()
+    await state.set_state(Fsm.input)
 
 
 @router.message(StateFilter(Fsm.input), F.text)
-async def kick_user(message: Message, bot: Bot):
+async def kick_user(message: Message, bot: Bot, state: FSMContext):
+    await state.update_data(name=message.text)
+    await state.set_state(Fsm.kick)
     username = message.text.strip() if message.text else None
     if not username:
         await message.reply("Ник пользователя не может быть пустым. Попробуйте снова.")
