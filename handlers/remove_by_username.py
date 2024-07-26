@@ -9,7 +9,6 @@ router = Router()
 CHANNEL_ID = os.getenv('CHANNEL_ID')
 
 
-
 async def kick_user(message: types.Message, bot: Bot, channel_id: str):
     args = message.get_args()
     if not args:
@@ -30,6 +29,7 @@ async def kick_user(message: types.Message, bot: Bot, channel_id: str):
         await message.reply(f"Пользователь {username} удален из канала.")
     except Exception as e:
         await message.reply(f"Не удалось удалить пользователя {username}. Ошибка: {e}")
+
 
 def reregister_handlers(dp: Dispatcher):
     dp.message.register(kick_user, Command("kick"))

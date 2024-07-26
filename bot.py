@@ -7,6 +7,7 @@ from config.config import TgBot, load_config
 from handlers import start_handler
 from handlers import remove_by_username as rm
 
+
 # Функция конфигурирования и запуска бота
 async def main():
     # Конфигурация логирования
@@ -29,7 +30,7 @@ async def main():
     # Настраиваем главное меню
 
     # Регистрируем роутеры
-    dp.include_router(start_handler.routers)
+    dp.include_router(start_handler.router)
 
     rm.reregister_handlers(dp)
     asyncio.run(dp.start_polling(bot, skip_updates=True))
