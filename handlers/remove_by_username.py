@@ -1,7 +1,7 @@
 from aiogram.filters import Command
 from aiogram import Router
-from aiogram import types
 import os
+from aiogram.types import Message
 from aiogram import Bot, Dispatcher
 
 router = Router()
@@ -10,7 +10,7 @@ CHANNEL_ID = os.getenv('CHANNEL_ID')
 
 
 
-async def kick_user(message: types.Message, bot: Bot, channel_id: str):
+async def kick_user(message: Message, bot: Bot, channel_id: str):
     args = message.get_args()
     if not args:
         await message.reply("Пожалуйста, укажите ник пользователя, например: /kick @username")
