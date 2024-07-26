@@ -8,6 +8,7 @@ from config.config import TgBot, load_config
 router = Router()
 config: TgBot = load_config()
 
+CHANNEL_ID = config.channel_id_one
 
 @router.message(CommandStart())
 async def send_welcome(message: Message):
@@ -21,27 +22,28 @@ async def send_welcome(message: Message):
     )
 
 
-CHANNEL_ID = config.channel_id_one
+
 
 
 @router.callback_query(F.data == 'remove_by_username')
-async def kick_user(message: Message, bot: Bot, channel_id: str):
-    args = message.get_args()
-    if not args:
-        await message.reply("Пожалуйста, укажите ник пользователя, например: /kick @username")
-        return
+async def kick_user(callback: CallbackQuery, bot: Bot):
+    await callback.message.answer("Пожалуйста, укажите ник пользователя для удаления (например, @username):")
+    await callback.answer()  # Закрываем инлайн-запрос
 
-    username = args.split()[0]
-    if not username.startswith('@'):
-        username = '@' + username
+    # Регистрация обработчика для следующего текстового сообщения
+    @router.message()
+    async def kick_user(message: Message):
+        username = message.text
+        if not username.startswith('@'):
+            username = '@' + username
 
-    try:
-        # Получаем информацию о пользователе по его никнейму
-        member = await bot.get_chat_member(channel_id, username)
-        user_id = member.user.id
+        try:
+            # Получаем информацию о пользователе по его никнейму
+            member = await bot.get_chat_member(CHANNEL_ID, username)
+            user_id = member.user.id
 
-        # Удаляем пользователя из канала
-        await bot.ban_chat_member(channel_id, user_id)
-        await message.reply(f"Пользователь {username} удален из канала.")
-    except Exception as e:
-        await message.reply(f"Не удалось удалить пользователя {username}. Ошибка: {e}")
+            # Удаляем пользователя из канала
+            await bot.ban_chat_member(CHANNEL_ID, user_id)
+            await message.reply(f"Пользователь {username} удален из канала.")
+        except Exception as e:
+            await message.reply(f"Не удалось удалить пользователя {username}. Ошибка: {e}")
