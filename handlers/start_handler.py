@@ -33,7 +33,7 @@ async def send_welcome(message: Message):
 
 @router.callback_query(F.data == 'remove_by_username')
 async def kick_user(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer("Пожалуйста, укажите ник пользователя для удаления (например, @username):")
+    await callback.message.answer("Пожалуйста, укажите ник пользователя для удаления (например, username):")
     await callback.answer()
     await state.set_state(Fsm.input)
 
@@ -41,20 +41,15 @@ async def kick_user(callback: CallbackQuery, state: FSMContext):
 async def kick_user(message: Message, bot: Bot, state: FSMContext):
     await state.update_data(name=message.text)
     await state.set_state(Fsm.kick)
-    print(1)
     username_dict = await state.get_data()
     username = username_dict.get('name')
-    print(username)
     if not username:
         await message.reply("Ник пользователя не может быть пустым. Попробуйте снова.")
         return
 
-    if not username.startswith('@'):
-        username = '@' + username
-
     try:
         # Получаем информацию о пользователе по его никнейму
-        user_id = u_id(username)
+        user_id = await u_id(username)
 
         # Удаляем пользователя из канала
         await bot.ban_chat_member(CHANNEL_ID, user_id)
