@@ -7,6 +7,7 @@ from config.config import TgBot, load_config
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.filters import StateFilter
+from module import resolve_username_to_user_id as u_id
 
 
 
@@ -53,8 +54,7 @@ async def kick_user(message: Message, bot: Bot, state: FSMContext):
 
     try:
         # Получаем информацию о пользователе по его никнейму
-        member = await bot.get_chat_member(CHANNEL_ID, username)
-        user_id = member.user.id
+        user_id = u_id(username)
 
         # Удаляем пользователя из канала
         await bot.ban_chat_member(CHANNEL_ID, user_id)
