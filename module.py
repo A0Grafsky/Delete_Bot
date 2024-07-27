@@ -11,6 +11,7 @@ config: TgBot = load_config()
 
 BOT_TOKEN = config.token
 
+
 async def resolve_username_to_user_id(username: str) -> int | None:
     # Создаем клиент внутри функции
     async with Client(

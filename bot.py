@@ -4,15 +4,16 @@ from aiogram import Bot, Dispatcher
 from config.config import TgBot, load_config
 from handlers import start_handler
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(filename)s:%(lineno)d #%(levelname)-8s [%(asctime)s] - %(name)s - %(message)s'
-)
-logging.getLogger("pyrogram").setLevel(logging.WARNING)
-
 
 # Функция конфигурирования и запуска бота
 async def main():
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(filename)s:%(lineno)d #%(levelname)-8s'
+               '[%(asctime)s] - %(name)s - %(message)s'
+    )
+
     # Выводим в консоль информацию о начале запуска бота
     logging.info('Starting bot')
 
