@@ -99,29 +99,38 @@ async def print_1(callback: CallbackQuery):
     except Exception as e:
         print(f"An error occurred: {e}")
 
+##############################################################################################################################
+async def get_last_message_date(user_id: int):
+    async for message in bot.get_chat_history(CHANNEL_ID):
+        if message.from_user and message.from_user.id == user_id:
+            return message.date
+    return None
+
 @router.callback_query(F.data == 'remove_deleted')
-async def remove_inactive_users(callback: CallbackQuery, bot: Bot):
-    channel_id = CHANNEL_ID
-    # Определите период неактивности (например, 30 дней)
-    inactivity_threshold = timedelta(days=30)
-    cutoff_date = datetime.now() - inactivity_threshold
-
+async def remove_inactive(callback: CallbackQuery):
     try:
+        await callback.message.answer("Начинаю процесс удаления неактивных пользователей...")
+
+        # Период неактивности
+        inactivity_threshold = timedelta(days=30)
+        cutoff_date = datetime.now() - inactivity_threshold
+
         # Получаем список участников
-        members = await get_channel_members(channel_id)
+        members = await get_channel_members(CHANNEL_ID)
 
-        # Удаление неактивных пользователей
         for member in members:
-            # Пример проверки последней активности
-            last_active_date = member.get('last_active_date')  # Замените на правильное поле
-            if last_active_date and last_active_date < cutoff_date:
+            # Период времени после которого пользователь считается неактивным
+            last_message_date = await get_last_message_date(member.user.id)
+            if last_message_date and last_message_date < cutoff_date:
+                try:
+                    await callback.bot.ban_chat_member(CHANNEL_ID, member.user.id)
+                    print(f"Пользователь {member.user.id} удален из канала из-за неактивности.")
+                except Exception as e:
+                    print(f"Не удалось удалить пользователя {member.user.id}. Ошибка: {e}")
 
-                await bot.ban_chat_member(channel_id, member['user_id'])
-                print(f"Пользователь {member['user_id']} удален из канала из-за неактивности.")
-
-        await callback.message.answer("Неактивные пользователи удалены.")
-        await callback.answer()
+        await callback.message.answer("Процесс удаления неактивных пользователей завершен.")
 
     except Exception as e:
-        print(f"An error occurred: {e}")
         await callback.message.answer(f"Произошла ошибка: {e}")
+
+
