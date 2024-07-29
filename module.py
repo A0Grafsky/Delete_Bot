@@ -30,3 +30,20 @@ async def resolve_username_to_user_id(username: str) -> int | None:
         except Exception as e:
             print(f"Error resolving username {username}: {e}")
             return None
+
+
+async def get_channel_members(channel_id: int):
+    members = []
+    async with Client(
+            "bot",
+            api_id=25046789,
+            api_hash="3331710ae9db228a2d2834493e6fdd05",
+            bot_token=BOT_TOKEN
+    ) as app:
+        # Получаем участников канала по ID
+        async for user in app.get_chat_members(channel_id):
+            members.append(f'{user.user.id}: {user.user.first_name} {user.user.last_name}')
+    return members
+
+
+

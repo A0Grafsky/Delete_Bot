@@ -1,6 +1,7 @@
 from aiogram import Router, F
 from aiogram.filters import CommandStart
-from aiogram.types import Message, CallbackQuery
+from aiogram.handlers import callback_query
+from aiogram.types import Message, CallbackQuery, InputFile, FSInputFile
 from keyboards.inline_keyboard import create_inline_kb
 from aiogram import Bot
 from config.config import TgBot, load_config
@@ -8,12 +9,16 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.filters import StateFilter
 from module import resolve_username_to_user_id as u_id
+from module import get_channel_members
+import json
+import os
+from datetime import datetime, timedelta
 
 
 router = Router()
 config: TgBot = load_config()
 
-CHANNEL_ID = config.channel_id_one
+CHANNEL_ID = int(config.channel_id_one)
 
 
 # FSM для "удаление по нику"
@@ -34,7 +39,7 @@ async def send_welcome(message: Message):
         "в списке пользователей удалит бот\n\n"
         "Удаление неактивных пользователей - бот удалит всех неактивных пользователей.",
         reply_markup=create_inline_kb(1, 'remove_by_username',
-                                      'remove_first', 'remove_last', 'remove_deleted')
+                                      'remove_first', 'remove_last', 'remove_deleted', 'print_all_user')
     )
 
 
@@ -68,3 +73,55 @@ async def kick_user(message: Message, bot: Bot, state: FSMContext):
         await message.reply(f"Пользователь {username} удален из канала.")
     except Exception as e:
         await message.reply(f"Не удалось удалить пользователя {username}. Ошибка: {e}")
+
+
+@router.callback_query(F.data == 'print_all_user')
+async def print_1(callback: CallbackQuery):
+    channel_id = CHANNEL_ID
+
+    try:
+        # Получаем список участников
+        members = await get_channel_members(channel_id)
+
+        # Сохраняем список участников в JSON-файл
+        filename = "members_list.json"
+        with open(filename, "w") as file:
+            json.dump(members, file, indent=4)
+
+        message_text = "JSON-файл для Вас ❤️"
+
+        file = FSInputFile('members_list.json')
+
+        await callback.bot.send_document(chat_id=callback.from_user.id, document=file, caption=message_text)
+
+        os.remove(filename)
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+@router.callback_query(F.data == 'remove_deleted')
+async def remove_inactive_users(callback: CallbackQuery, bot: Bot):
+    channel_id = CHANNEL_ID
+    # Определите период неактивности (например, 30 дней)
+    inactivity_threshold = timedelta(days=30)
+    cutoff_date = datetime.now() - inactivity_threshold
+
+    try:
+        # Получаем список участников
+        members = await get_channel_members(channel_id)
+
+        # Удаление неактивных пользователей
+        for member in members:
+            # Пример проверки последней активности
+            last_active_date = member.get('last_active_date')  # Замените на правильное поле
+            if last_active_date and last_active_date < cutoff_date:
+
+                await bot.ban_chat_member(channel_id, member['user_id'])
+                print(f"Пользователь {member['user_id']} удален из канала из-за неактивности.")
+
+        await callback.message.answer("Неактивные пользователи удалены.")
+        await callback.answer()
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        await callback.message.answer(f"Произошла ошибка: {e}")
