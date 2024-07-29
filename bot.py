@@ -2,7 +2,7 @@ import asyncio
 import logging
 from aiogram import Bot, Dispatcher
 from config.config import TgBot, load_config
-from handlers import start_handler
+from handlers import start_handler, delete_handler
 
 
 # Функция конфигурирования и запуска бота
@@ -25,6 +25,7 @@ async def main():
     dp = Dispatcher()
 
     # Регистрируем роутеры
+    dp.include_router(delete_handler.router)
     dp.include_router(start_handler.router)
 
     await bot.delete_webhook(drop_pending_updates=True)
