@@ -55,18 +55,18 @@ async def kick_user(message: Message, bot: Bot, state: FSMContext):
 
 
 # Обработчик кнопки 'Удаление первых n-человек'
-@router.callback_query(F.data == 'remove_first')
-async def kick_first_users(callback: CallbackQuery):
-    pass
+#@router.callback_query(F.data == 'remove_first')
+#async def kick_first_users(callback: CallbackQuery):
+ #   pass
 
 
 # Обработка конпки 'Удаление последних n-человек'
-@router.callback_query(F.data == 'remove_last')
-async def kick_last_users(callback: CallbackQuery):
-    pass
+#@router.callback_query(F.data == 'remove_last')
+#async def kick_last_users(callback: CallbackQuery):
+ #   pass
 
 
 # Обработка кнопки 'Удаление неактивных пользователей'
-@router.callback_query(F.data == 'remove_deleted')
-async def kick_deleted_users(callback: CallbackQuery):
-    pass
+#@router.callback_query(F.data == 'remove_deleted')
+#async def kick_deleted_users(callback: CallbackQuery):
+ #   pass

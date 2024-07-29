@@ -8,16 +8,17 @@ logging.getLogger("pyrogram").setLevel(logging.WARNING)
 
 
 config: TgBot = load_config()
-
 BOT_TOKEN = config.token
-
+API_ID = config.api_id
+API_HASH = config.api_hash
+CHANNEL_ID = config.channel_id_one
 
 async def resolve_username_to_user_id(username: str) -> int | None:
     # Создаем клиент внутри функции
     async with Client(
             "bot",
-            api_id=25046789,
-            api_hash="3331710ae9db228a2d2834493e6fdd05",
+            api_id=API_ID,
+            api_hash=API_HASH,
             bot_token=BOT_TOKEN
     ) as pyrogram_client:
         try:
@@ -36,8 +37,8 @@ async def get_channel_members(channel_id: int):
     members = []
     async with Client(
             "bot",
-            api_id=25046789,
-            api_hash="3331710ae9db228a2d2834493e6fdd05",
+            api_id=API_ID,
+            api_hash=API_HASH,
             bot_token=BOT_TOKEN
     ) as app:
         # Получаем участников канала по ID
@@ -47,3 +48,17 @@ async def get_channel_members(channel_id: int):
 
 
 
+async def get_last_message_date(user_id: int,):
+    async with Client(
+            "bot",
+            api_id=API_ID,
+            api_hash=API_HASH,
+            bot_token=BOT_TOKEN
+    ) as app:
+        last_message_date = None
+        async for message in app.get_chat_history(CHANNEL_ID,
+                                                     limit=100):
+            if message.from_user and message.from_user.id == user_id:
+                last_message_date = message.date
+                break
+        return last_message_date
