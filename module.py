@@ -13,6 +13,7 @@ API_ID = config.api_id
 API_HASH = config.api_hash
 CHANNEL_ID = config.channel_id_one
 
+
 async def resolve_username_to_user_id(username: str) -> int | None:
     # Создаем клиент внутри функции
     async with Client(
@@ -47,7 +48,6 @@ async def get_channel_members(channel_id: int):
     return members
 
 
-
 async def get_last_message_date(user_id: int,):
     async with Client(
             "bot",
@@ -56,8 +56,7 @@ async def get_last_message_date(user_id: int,):
             bot_token=BOT_TOKEN
     ) as app:
         last_message_date = None
-        async for message in app.get_chat_history(CHANNEL_ID,
-                                                     limit=100):
+        async for message in app.get_chat_history(CHANNEL_ID, limit=100):
             if message.from_user and message.from_user.id == user_id:
                 last_message_date = message.date
                 break
