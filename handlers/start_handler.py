@@ -1,7 +1,11 @@
+import asyncio
+
 from aiogram import Router, F
 from aiogram.filters import CommandStart
 from aiogram.handlers import callback_query
 from aiogram.types import Message, CallbackQuery, InputFile, FSInputFile
+from telethon.errors import UserNotParticipantError
+
 from keyboards.inline_keyboard import create_inline_kb
 from aiogram import Bot
 from config.config import TgBot, load_config
@@ -13,7 +17,7 @@ from module import get_channel_members
 from module import get_last_message_date
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import re
 
 router = Router()
@@ -168,29 +172,57 @@ async def remove_inactive(callback: CallbackQuery, bot: Bot):
 
         # Период неактивности
         inactivity_threshold = timedelta(days=30)
-        cutoff_date = datetime.now() - inactivity_threshold
+        cutoff_date = datetime.now(timezone.utc) - inactivity_threshold
+
         # Получаем список участников
         members = await get_channel_members(CHANNEL_ID)
-        # Парсим строку в формат user_id: имя
         user_ids = parse_user_ids(members)
 
-        print("Перед фором все збс")
         for user_id in user_ids:
-            print(1 - 1)
-            last_message_date = await get_last_message_date(user_id)
-            print(2 - 1)
-            if last_message_date and last_message_date < cutoff_date:
-                print(3 - 1)
+            try:
+                last_message_date = await get_last_message_date(user_id)
+                print(f"Last message date for user {user_id}: {last_message_date}")
+
+                if last_message_date:
+                    # Приведение last_message_date к временной зоне UTC, если она не aware
+                    if last_message_date.tzinfo is None:
+                        last_message_date = last_message_date.replace(tzinfo=timezone.utc)
+
+                    if last_message_date < cutoff_date:
+                        try:
+                            await bot.ban_chat_member(CHANNEL_ID, user_id)
+                            print(f"Пользователь {user_id} удален из канала из-за неактивности.")
+                        except Exception as e:
+                            print(f"Не удалось удалить пользователя {user_id}. Ошибка: {e}")
+                else:
+                    # Если дата сообщения не найдена, считаем пользователя неактивным
+                    await bot.ban_chat_member(CHANNEL_ID, user_id)
+                    print(f"Пользователь {user_id} удален из канала, так как неактивен (сообщение не найдено).")
+
+            except UserNotParticipantError:
+                # Пользователь не является участником, так что можно считать его неактивным и удалить
                 try:
                     await bot.ban_chat_member(CHANNEL_ID, user_id)
-                    print(f"Пользователь {user_id} удален из канала из-за неактивности.")
+                    print(f"Пользователь {user_id} удален из канала, так как не является участником.")
                 except Exception as e:
                     print(f"Не удалось удалить пользователя {user_id}. Ошибка: {e}")
+
+            except Exception as e:
+                print(f"Error getting last message date for user {user_id}: {e}")
+                # В случае любой другой ошибки считаем пользователя неактивным
+                try:
+                    await bot.ban_chat_member(CHANNEL_ID, user_id)
+                    print(f"Пользователь {user_id} удален из канала из-за ошибки при получении данных.")
+                except Exception as e:
+                    print(f"Не удалось удалить пользователя {user_id}. Ошибка: {e}")
+
+            await asyncio.sleep(1)  # Ожидание 1 секунда
 
         await callback.message.answer("Процесс удаления неактивных пользователей завершен.")
 
     except Exception as e:
         await callback.message.answer(f"Произошла ошибка: {e}")
+
 
 
 def parse_user_ids(members):
